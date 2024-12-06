@@ -8,24 +8,49 @@ CONFIG_FILE = "config.json"
 
 # Función para leer o inicializar el archivo de configuración
 def obtener_ultimo_folio():
-    if not os.path.exists(CONFIG_FILE):
-        # Crear archivo de configuración si no existe
-        with open(CONFIG_FILE, "w") as config:
-            json.dump({"ultimo_folio": 1000, "ultimo_registro": ""}, config)
-        return 1000
-    else:
-        with open(CONFIG_FILE, "r") as config:
-            data = json.load(config)
-        return data["ultimo_folio"]
+    try:
+        if not os.path.exists(CONFIG_FILE):
+            # Crear archivo de configuración si no existe
+            with open(CONFIG_FILE, "w") as config:
+                json.dump({"ultimo_folio": 1000, "ultimo_registro": ""}, config)
+            return {"ultimo_folio": 1000}
+        else:
+            # Leer el archivo de configuración
+            with open(CONFIG_FILE, "r") as config:
+                data = json.load(config)
+            
+            # Si no existe el campo "ultimo_folio", devolver error
+            if "ultimo_folio" not in data:
+                return {"error": "El campo 'ultimo_folio' no está en el archivo de configuración .json ."}
+            
+            # Devolver el último folio
+            return {"ultimo_folio": data["ultimo_folio"]}
+    
+    except Exception as e:
+        # Capturar cualquier error inesperado y devolverlo
+        return {"error": f"Error inesperado: {str(e)}"}
 
 # Función para obtener la última fecha registrada (corte) del JSON
 def obtener_ultimo_registro():
-    if not os.path.exists(CONFIG_FILE):
-        return ""
-    else:
-        with open(CONFIG_FILE, "r") as config:
-            data = json.load(config)
-        return data["ultimo_registro"]
+    try:
+        if not os.path.exists(CONFIG_FILE):
+            # Si el archivo no existe, devolver error
+            return {"error": "El archivo de configuración no existe."}
+        else:
+            # Abrir el archivo de configuración y leerlo
+            with open(CONFIG_FILE, "r") as config:
+                data = json.load(config)
+                
+            # Si no existe el campo "ultimo_registro", devolver error
+            if "ultimo_registro" not in data:
+                return {"error": "El campo 'ultimo_registro' no está en el archivo de configuración .json ."}
+            
+            # Si todo está bien, devolver el valor del último registro
+            return {"ultimo_registro": data["ultimo_registro"]}
+    
+    except Exception as e:
+        # Capturar cualquier error inesperado y devolverlo
+        return {"error": f"Error inesperado: {str(e)}"}
 
 # Función para actualizar el archivo de configuración con el nuevo folio y fecha
 def actualizar_ultimo_folio(nuevo_folio, ultimo_registro):
@@ -160,14 +185,43 @@ def rellenar_plantilla(datos_array, ruta_plantilla, ruta_salida_base):
     except Exception as e:
         print(f"Error al guardar el archivo exportado: {e}")
 
-if __name__ == "__main__":
-    ruta_entrada = input("Ingresa la ruta al archivo Excel de entrada: ")
+# Función para recorrer todos los procesos (API)
+def procesar_archivo_completo(ruta_entrada):
+    # Obtener el último registro del archivo de configuración
     ultimo_registro = obtener_ultimo_registro()
+    
+    # Procesar el archivo Excel
     datos, nuevo_registro = procesar_archivo_excel(ruta_entrada, ultimo_registro)
+    
     if datos:
+        # Rutas para la plantilla y la salida
         ruta_plantilla = "./plantilla/Plantilla_ERP.xlsx"
         ruta_salida_base = "./plantilla/CARGA_PT"
-        rellenar_plantilla(datos, ruta_plantilla, ruta_salida_base)
-        print(f"Último registro procesado: {nuevo_registro}")
+        
+        # Rellenar la plantilla con los datos procesados
+        archivo_generado = rellenar_plantilla(datos, ruta_plantilla, ruta_salida_base)
+        
+        return {
+            "mensaje": "Procesamiento exitoso",
+            "ultimo_registro": nuevo_registro,
+            "archivo_salida": archivo_generado,
+        }
     else:
-        print("No se han procesado datos nuevos.")
+        return {
+            "mensaje": "No se han procesado datos nuevos.",
+        }
+
+
+
+
+#if __name__ == "__main__":
+#    ruta_entrada = input("Ingresa la ruta al archivo Excel de entrada: ")
+#    ultimo_registro = obtener_ultimo_registro()
+#    datos, nuevo_registro = procesar_archivo_excel(ruta_entrada, ultimo_registro)
+#    if datos:
+#        ruta_plantilla = "./plantilla/Plantilla_ERP.xlsx"
+#        ruta_salida_base = "./plantilla/CARGA_PT"
+#        rellenar_plantilla(datos, ruta_plantilla, ruta_salida_base)
+#        print(f"Último registro procesado: {nuevo_registro}")
+#    else:
+#        print("No se han procesado datos nuevos.")

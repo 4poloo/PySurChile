@@ -1,10 +1,15 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from PySURCHILE import *
 import json
 import os
 
 app = FastAPI()
+
+class Item(BaseModel):
+    nombre: str
+    descripcion: str
 
 #FUNCIONES API
 # Función para validar que el archivo es un .xlsx

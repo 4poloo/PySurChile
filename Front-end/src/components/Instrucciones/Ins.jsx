@@ -25,13 +25,13 @@ const dropins = [
     },
     
     {
-        id: 2,
+        id: 3,
         titulo: "Funcionalidades:",
         content: (
             <>
                 <p>1.   Formatear archivo PT de Invas a Softland.</p>
                 <p>2.   Cambios de número de folio.</p>
-                <p>3.   Consola de Logs.</p>
+                <p>3.   Consola de registros.</p>
             </>
         ),
     },
